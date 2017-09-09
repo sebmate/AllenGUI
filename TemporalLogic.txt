@@ -1,0 +1,3 @@
+B [overlaps] A
+B [overlaps] C
+A [during, contains, overlaps, overlapped by, starts, started by, finishes, finished by, equals] C
