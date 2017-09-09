@@ -1,6 +1,6 @@
 # AllenGUI
 
-AllenGUI is a graphical query modelling tool based on Allen's interval algebra (see: http://cse.unl.edu/~choueiry/Documents/Allen-CACM1983.pdf).
+AllenGUI is a graphical query modelling tool based on Allen's interval algebra, which has been described in Allen, James F. "Maintaining knowledge about temporal intervals." Communications of the ACM 26.11 (1983): 832-843.
 
 The tool uses the library "allentemporalrelationships" by Jörn Franke (see: https://github.com/jornfranke/allentemporalrelationships).
 
