@@ -13,3 +13,4 @@ The project can be build with Eclipse. Using the tool is simple:
 The tool automatically updates "TemporalLogic.txt", which can be post-processed by AllenSPARQL (see: https://github.com/sebmate/AllenSPARQL) or by other tools.
 
 ![Screenshot](Screenshot.png)
+ 
