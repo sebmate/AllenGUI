@@ -51,6 +51,7 @@ public class AllenGUI extends JFrame {
 
 	ArrayList<Shape> shapes = new ArrayList<Shape>();
 	ArrayList<String> itemNames = new ArrayList<String>();
+	ArrayList<Boolean> itemToggles = new ArrayList<Boolean>();
 
 	private javax.swing.JDialog AllenStatementsWindow;
 	private javax.swing.JScrollPane jScrollPane2;
@@ -122,6 +123,7 @@ public class AllenGUI extends JFrame {
 				Shape r = gh.makeRectangle(10, 10 + (atConcept * 40), 210, 30);
 				shapes.add(r);
 				itemNames.add(line);
+				itemToggles.add(false);
 				atConcept++;
 			}
 		} catch (FileNotFoundException e) {
@@ -141,6 +143,7 @@ public class AllenGUI extends JFrame {
 		Point startDraw, endDraw;
 		Point startDrag, endDrag;
 		Point startScale, endScale;
+		Point startMouse, endMouse;
 		int toDrag = -1, toScale = -1;
 
 		int dragStartX = 0, dragStartY = 0;
@@ -179,6 +182,7 @@ public class AllenGUI extends JFrame {
 						// get start position for drawing a new item:
 						if (toDrag == -1 && toScale == -1) {
 							startDraw = new Point(e.getX() - 10, e.getY() - 10);
+							startMouse = new Point(e.getX(), e.getY());
 							endDraw = startDraw;
 							repaint();
 						}
@@ -186,6 +190,7 @@ public class AllenGUI extends JFrame {
 						// get start position for dragging an old item:
 						if (toDrag != -1 && toScale == -1) {
 							startDrag = new Point(e.getX(), e.getY());
+							startMouse = new Point(e.getX(), e.getY());
 							selected = shapes.get(toDrag);
 							repaint();
 						}
@@ -193,6 +198,7 @@ public class AllenGUI extends JFrame {
 						// get start position for scaling an old item:
 						if (toScale != -1 && toDrag == -1) {
 							startScale = new Point(e.getX(), e.getY());
+							startMouse = new Point(e.getX(), e.getY());
 							selected = shapes.get(toScale);
 							repaint();
 						}
@@ -209,6 +215,7 @@ public class AllenGUI extends JFrame {
 								// System.out.println("Deleting item " + a);
 								shapes.remove(a);
 								itemNames.remove(a);
+								itemToggles.remove(a);
 								repaint();
 							}
 						}
@@ -237,32 +244,11 @@ public class AllenGUI extends JFrame {
 
 										if (!id.getOccuranceModifier().equals("")
 												|| !id.getValueModifier().equals("")) {
-											// id.setEnumerator("#" + a);
+											//id.setEnumerator("#" + a);
 										}
 									}
 
 									itemNames.set(a, id.buildName());
-
-									/*
-									 * 
-									 * name = name.replaceAll("> ", ">"); name =
-									 * name.replaceAll("< ", "<"); name =
-									 * name.replaceAll("= ", "=");
-									 * 
-									 * if (name != null) { if
-									 * ((name.startsWith("NO") ||
-									 * name.contains(">") || name.contains("<")
-									 * || name.contains("=")) &&
-									 * !name.endsWith(")")) name += " (" + a +
-									 * ")";
-									 * 
-									 * if (isRelativeInterval(name)) { name +=
-									 * " (" + a + ")"; }
-									 * 
-									 * itemNames.set(a, name);
-									 * 
-									 * }
-									 */
 
 									repaint();
 									hitItem = true;
@@ -276,7 +262,41 @@ public class AllenGUI extends JFrame {
 
 				public void mouseReleased(MouseEvent e) {
 					if (e.getButton() == MouseEvent.BUTTON1) {
-						// System.out.println("mouseReleased");
+						System.out.println("mouseReleased");
+
+						endMouse = new Point(e.getX(), e.getY());
+
+						System.out.println(startMouse.x + " => " + endMouse.x);
+						System.out.println(startMouse.y + " => " + endMouse.y);
+
+						if (startMouse.x == endMouse.x && startMouse.y == endMouse.y) { // Toggling
+																						// an
+																						// item
+
+							int item = 0;
+							if (toDrag != -1)
+								item = toDrag;
+							if (toScale != -1)
+								item = toScale;
+
+							if (itemNames.get(item).startsWith("#")) {
+								// JOptionPane.showMessageDialog(null, "Toggle "
+								// + !itemToggles.get(item), "Toggle ",
+								// JOptionPane.ERROR_MESSAGE);
+								itemToggles.set(item, !itemToggles.get(item));
+
+								if (itemToggles.get(item) && !itemNames.get(item).contains("_TOGGLED")) {
+									itemNames.set(item, itemNames.get(item) + "_TOGGLED");
+								}
+
+								if (!itemToggles.get(item) && itemNames.get(item).contains("_TOGGLED")) {
+									itemNames.set(item, itemNames.get(item).replaceAll("_TOGGLED", ""));
+								}
+
+							}
+
+						}
+
 						if (toDrag == -1 && toScale == -1) {
 							Shape r = gh.makeRectangle(startDraw.x, startDraw.y, e.getX(), e.getY());
 							shapes.add(r);
@@ -287,6 +307,7 @@ public class AllenGUI extends JFrame {
 							} else {
 								itemNames.add(getNewConceptName(""));
 							}
+							itemToggles.add(false);
 
 							// long ms = System.currentTimeMillis();
 							// itemNames.add("Item_" + ms);
@@ -295,6 +316,7 @@ public class AllenGUI extends JFrame {
 							endDraw = null;
 							// System.out.println(shapes.size());
 						}
+
 						generateOutput();
 
 					}
@@ -395,10 +417,17 @@ public class AllenGUI extends JFrame {
 						|| itemNames.get(a).startsWith("#")) { // connector
 					// line
 
-					g2.setComposite(AlphaComposite.getInstance(AlphaComposite.SRC_OVER, 0.7f));
-					g2.setPaint(Color.ORANGE);
-					g2.draw(s);
-					g2.fill(s);
+					if (!itemToggles.get(a)) {
+						g2.setComposite(AlphaComposite.getInstance(AlphaComposite.SRC_OVER, 0.7f));
+						g2.setPaint(Color.ORANGE);
+						g2.draw(s);
+						g2.fill(s);
+					} else {
+						g2.setComposite(AlphaComposite.getInstance(AlphaComposite.SRC_OVER, 0.7f));
+						g2.setPaint(Color.RED);
+						g2.draw(s);
+						g2.fill(s);
+					}
 
 					// Font f = new Font("Arial", Font.BOLD, 14);
 					// g2.setFont(f);
@@ -422,58 +451,15 @@ public class AllenGUI extends JFrame {
 					if (id.isNegation()) {
 						g2.setPaint(Color.RED);
 					}
-					
-					// if (isRelativeInterval(itemNames.get(a)))
+
 					if (id.isDuration())
 						g2.setPaint(Color.DARK_GRAY);
 
-					// if (itemNames.get(a).contains("ANY") ||
-					// itemNames.get(a).contains(">")
-					// || itemNames.get(a).contains("<") ||
-					// itemNames.get(a).contains("=")) {
-					// g2.setPaint(Color.darkGray);
-					// }
+					if (id.isTimeStamp()) {
+						g2.setPaint(new Color(0, 150, 0));
+					}
 
 					g2.fill(s);
-
-					// if (!myConstraintNetwork.pathConsistency())
-					// g2.setPaint(Color.RED);
-
-					// if (!itemNames.get(a).startsWith("ANY") &&
-					// !itemNames.get(a).contains(">")
-					// && !itemNames.get(a).contains("<") &&
-					// !itemNames.get(a).contains("="))
-					// g2.fill(s);
-
-					/*
-					 * if (itemNames.get(a).startsWith("ANY") ||
-					 * itemNames.get(a).contains(">") ||
-					 * itemNames.get(a).contains("<") ||
-					 * itemNames.get(a).contains("=")) {
-					 * 
-					 * Random random = new Random(getSeed(itemNames.get(a)));
-					 * 
-					 * for (int x = -10; x < s.getBounds().getBounds().width -
-					 * 10; x = x + 10) { Shape randomInterval; randomInterval =
-					 * gh.makeRectangle(s.getBounds().getBounds().x + x,
-					 * s.getBounds().getBounds().y - 10,
-					 * s.getBounds().getBounds().x + x + 1,
-					 * s.getBounds().getBounds().y +
-					 * s.getBounds().getBounds().height - 10);
-					 * 
-					 * Integer randInt = random.nextInt(2);
-					 * 
-					 * if (randInt == 0 || x == -10 || x + 10 >=
-					 * s.getBounds().getBounds().width - 10) {
-					 * g2.setPaint(Color.BLUE); } else {
-					 * g2.setPaint(Color.darkGray); }
-					 * 
-					 * g2.fill(randomInterval);
-					 * 
-					 * }
-					 * 
-					 * }
-					 */
 
 					g2.setComposite(AlphaComposite.getInstance(AlphaComposite.SRC_OVER, 1f));
 					Font f = new Font("Arial", Font.BOLD, 20);
@@ -543,31 +529,7 @@ public class AllenGUI extends JFrame {
 				}
 			}
 
-			/*
-			 * ArrayList<Constraint<String>> mCst =
-			 * myConstraintNetwork.getModeledConstraints(); for (int a = 0; a <
-			 * mCst.size(); a++) { Constraint<String> c = mCst.get(a); int s =
-			 * c.getSourceNode().getAllenId(); int t =
-			 * c.getDestinationNode().getAllenId(); Short n =
-			 * myConstraintNetwork.getConstraintNetwork().get(s).get(t);
-			 * 
-			 * System.out.println(c.getSourceNode().getIdentifier() + " " +
-			 * myConstraintNetwork.getConstraintStringFromConstraintShort(c.
-			 * getConstraints()) + " " +
-			 * c.getDestinationNode().getIdentifier());
-			 * 
-			 * // System.out.println(c.getSourceNode().getIdentifier() + " " //
-			 * + //
-			 * myConstraintNetwork.getConstraintStringFromConstraintShort(n) //
-			 * + " " // + c.getDestinationNode().getIdentifier()); }
-			 */
-
 			ArrayList<Node<String>> nodes = myConstraintNetwork.getModeledNodes();
-			// System.out.println("There are " + nodes.size() + " nodes in the
-			// network:");
-			// for (int a = 0; a < nodes.size(); a++) {
-			// System.out.println("Node: " + nodes.get(a).getIdentifier());
-			// }
 
 			System.out.println("Validating NOT statements ...");
 
@@ -595,8 +557,10 @@ public class AllenGUI extends JFrame {
 			// Now process the nodes coming from the inferencer:
 
 			String tempText = "";
+			String allStatements = "";
 
 			for (int a = 0; a < nodes.size(); a++) {
+
 				for (int b = a; b < nodes.size(); b++) {
 					if (a != b) {
 
@@ -611,9 +575,29 @@ public class AllenGUI extends JFrame {
 						String link = myConstraintNetwork.getConstraintStringFromConstraintShort(n).toString();
 						String target = nodes.get(b).getIdentifier();
 
+						AllenStatement temp = new AllenStatement(source + link + target);
+						temp.toPreferred();
+
+						source = temp.getInterval1().getOrigDescription();
+						link = "[" + temp.getRelation() + "]";
+						target = temp.getInterval2().getOrigDescription();
+
+						// if (itemToggles.get(a)) link += "TOGGLED";
+						// if (itemToggles.get(b)) link += "TOGGLED";
+
 						String statement = source + " " + link + " " + target + "\n";
+						allStatements += source + " " + link + " " + target + ";";
 
 						// System.out.println("Testing: " + statement);
+
+						// Do not show the generic Allen relation:
+						if (link.equals(
+								"[before, after, during, contains, overlaps, overlapped by, meets, met by, starts, started by, finishes, finished by, equals]")
+								|| link.equals(
+										"[before, after, during, contains, overlaps, overlapped_by, meets, met_by, starts, started_by, finishes, finished_by, equals]")) {
+
+							validStatement = false;
+						}
 
 						if (target.startsWith("#") || source.startsWith("#"))
 							validStatement = false;
@@ -661,23 +645,64 @@ public class AllenGUI extends JFrame {
 						if (validStatement) {
 							System.out.print(statement);
 							tempText += statement;
-							// } else {
-							// System.out.println("Rejecting invalid statement:
-							// " + statement);
 						}
 					}
-					// }
 				}
 			}
+
+			// Convert before/after into precedes/succeeds where applicable:
+
+			System.out.println("all Statements: " + allStatements);
+
+			String[] sts = allStatements.split(";");
+
+			// Build list of all Allen statements first:
+			ArrayList<AllenStatement> ass = new ArrayList<AllenStatement>();
+			for (int a = 0; a < sts.length; a++) {
+				if (!sts[a].equals("")) {
+					AllenStatement as = new AllenStatement(sts[a]);
+					as.toPreferred();
+					ass.add(as);
+				}
+			}
+
+			// Then identify and replace the relevant ones:
+			for (int a = 0; a < ass.size(); a++) {
+				AllenStatement as = ass.get(a);
+
+				if (as.getRelation().equals("meets")) {
+
+					for (int b = 0; b < ass.size(); b++) {
+						AllenStatement bs = ass.get(b);
+
+						if (bs.getRelation().equals("meets")
+								&& as.getInterval2().getOrigDescription().equals(bs.getInterval1().getOrigDescription())
+								&& as.getInterval2().getOrigDescription().contains("_TOGGLED")) {
+
+							System.out.println("Replacing: " + as.getInterval1().getOrigDescription() + " [before] "
+									+ bs.getInterval2().getOrigDescription() + " with "
+									+ as.getInterval1().getOrigDescription() + " [precedes] "
+									+ bs.getInterval2().getOrigDescription());
+
+							tempText = tempText.replaceAll(
+									as.getInterval1().getOrigDescription() + " \\[before\\] "
+											+ bs.getInterval2().getOrigDescription(),
+									as.getInterval1().getOrigDescription() + " \\[precedes\\] "
+											+ bs.getInterval2().getOrigDescription());
+
+						}
+
+					}
+
+				}
+
+			}
+
+			// ----------
 
 			allenStatementsViewer.setText(tempText);
 
 			ArrayList<ArrayList<Short>> x = myConstraintNetwork.getConstraintNetwork();
-
-			// System.out.println(myConstraintNetwork.pathConsistency());
-
-			// Inferencer myInferencer = new Inferencer(statements);
-			// statementsInferred = myInferencer.infer();
 
 			if (!myConstraintNetwork.pathConsistency()) {
 				JOptionPane.showMessageDialog(null, "This graph is not consistent!", "Temporal Error",
