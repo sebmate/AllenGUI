@@ -102,7 +102,6 @@ class AllenStatement {
 			System.out.println("Error: Unknown temporal relation '" + this.relation + "'");
 			break;
 		}
-
 	}
 
 	private void flip() {

@@ -244,7 +244,7 @@ public class AllenGUI extends JFrame {
 
 										if (!id.getOccuranceModifier().equals("")
 												|| !id.getValueModifier().equals("")) {
-											//id.setEnumerator("#" + a);
+											// id.setEnumerator("#" + a);
 										}
 									}
 
@@ -591,21 +591,28 @@ public class AllenGUI extends JFrame {
 						// System.out.println("Testing: " + statement);
 
 						// Do not show the generic Allen relation:
-						if (link.equals(
-								"[before, after, during, contains, overlaps, overlapped by, meets, met by, starts, started by, finishes, finished by, equals]")
-								|| link.equals(
-										"[before, after, during, contains, overlaps, overlapped_by, meets, met_by, starts, started_by, finishes, finished_by, equals]")) {
-
-							validStatement = false;
-						}
+						// if (link.equals(
+						// "[before, after, during, contains, overlaps,
+						// overlapped by, meets, met by, starts, started by,
+						// finishes, finished by, equals]")
+						// || link.equals(
+						// "[before, after, during, contains, overlaps,
+						// overlapped_by, meets, met_by, starts, started_by,
+						// finishes, finished_by, equals]")) {
+						// validStatement = false;
+						// }
 
 						if (target.startsWith("#") || source.startsWith("#"))
 							validStatement = false;
 
+						
 						// Test if a NOT node is to be processed:
 
+						/*
+						 
 						if ((source.startsWith("NO") && !target.startsWith("#"))
 								|| (target.startsWith("NO") && !source.startsWith("#"))) {
+
 							validStatement = false;
 
 							// Case 1: The statement was modeled by the user and
@@ -641,11 +648,15 @@ public class AllenGUI extends JFrame {
 								}
 							}
 						}
-
+						*/
+						
+						
+						
 						if (validStatement) {
 							System.out.print(statement);
 							tempText += statement;
 						}
+
 					}
 				}
 			}
